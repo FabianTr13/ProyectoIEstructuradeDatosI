@@ -1,0 +1,18 @@
+****Connect Four****
+Jugador 1
+1
+Jugador 2
+0
+Jugador 3
+0
+Jugador 4
+0
+
+ 1    2    3    4    5    6   
+| |  | |  | |  | |  | |  | |  
+| |  | |  | |  | |  | |  | |  
+|1|  | |  | |  | |  | |  | |  
+|1|  |2|  | |  | |  | |  | |  
+|1|  |2|  | |  | |  | |  | |  
+|1|  |2|  | |  | |  | |  | |  
+Ganador es jugador 1 con letra1

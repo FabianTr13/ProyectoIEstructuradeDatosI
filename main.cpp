@@ -4,6 +4,9 @@ develop on codeblock linux
 pt:esta ingles todo pura gana practicar
 */
 #include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
 #include <stdlib.h>// para usar el clear es el equivalente a cls en linux
 using namespace std;
 
@@ -23,8 +26,65 @@ public:
         this->nDown=nDown;
         this->nLeft=nLeft;
         this->nRight=nRight;
+
     }
     friend class Board;
+};
+
+class nodo {
+
+    public:
+        string elemt;
+    nodo *nnext;
+
+    nodo(string v, nodo *next = NULL) {
+       elemt = v;
+       nnext = next;
+    }
+};
+
+
+
+class cola {
+
+   private:
+    nodo *last;
+    nodo *first;
+
+   public:
+    int cLenght;
+    cola(){
+        this->cLenght=0;
+        this->last=NULL;
+        this->first=NULL;
+    }
+
+    void addCola(string v) {
+        nodo *newNode;
+        newNode = new nodo(v);
+        if(last) last->nnext = newNode;
+        last = newNode;
+        if(!first) first = newNode;
+        cLenght++;
+    }
+
+    string readCola() {
+        nodo *nodo;
+        string v;
+        nodo = first;
+        if(!nodo) {
+            return 0;
+        }
+        first = nodo->nnext;
+        v = nodo->elemt;
+        delete nodo;
+        if(!first){
+        last = NULL;
+        }
+   return v;
+
+    }
+
 };
 
 //tablero donde las funciones crean enlazan e ingresan y revisan el tablero
@@ -449,6 +509,7 @@ el primero representa las diagolanles del triandulo superios iqz
  };
 
 
+
  void printTable(player p, Board l){     //mi funsion que imprime el tablero y me lo divide en los cuadritos y todas las decoraciones para quede ordenado
 
         Node *tmp1 = l.first;
@@ -486,42 +547,115 @@ el primero representa las diagolanles del triandulo superios iqz
         }
     }
 
+   void fSave(int medal,player p, Board l,char win){
+        medal--;
+        cola c;
+        int playerPoint[4];//identificador de jugadores
+        int locador=0;     //locadizador de lineas que ocupo editar
+        stringstream ss;   //convertir int a string
+        string addPila="";  //variable que se agrega a pila
+        ifstream fe;        //lector de achivos
+
+        fe.open("Score.txt");
+        while(!fe.eof()){
+
+            locador++;
+            getline(fe,addPila);
+            playerPoint[medal]= atoi(addPila.c_str());
+           if(locador==3&&medal==0){
+                    playerPoint[0]++;
+                    ss<<playerPoint[0];
+                    addPila=ss.str();
+           }else if(locador==5&&medal==1){
+                    playerPoint[1]++;
+                    ss<<playerPoint[1];
+                    addPila=ss.str();
+           }else if(locador==7&&medal==2){
+                    playerPoint[2]++;
+                    ss<<playerPoint[2];
+                    addPila=ss.str();
+           }else if(locador==9&&medal==3){
+                    playerPoint[3]++;
+                    ss<<playerPoint[3];
+                    addPila=ss.str();
+           }
+        c.addCola(addPila);
+        }
+        fe.close();
+
+        ofstream fs("Score.txt");
+        for(int o=0;o<c.cLenght;o++){
+            fs<<c.readCola()<<endl;
+        }
+
+//-------------------------------------------------------------------------------------------------
+
+Node *tmp1 = l.first;
+        Node *tmp2 =  l.first;
+
+        for(int i=1;i<=l.tLenght;i++){
+            fs<<" "<<i<< "   ";
+        }
+        fs<<endl;
+        for (int i = 1; i<=l.tLenght; i++)
+        {
+            for (int j = 1; j<=l.tLenght; j++)
+            {
+
+               fs<<"|"<< tmp1->letter << "|  ";
+                tmp1 = tmp1->nRight;
+            }
+            fs << "\n";
+            tmp2 = tmp2->nDown;
+            tmp1 = tmp2;
+        }
+    fs<<"Ganador es jugador "<<medal+1<< " con letra"<<win<<endl;
+
+
+
+//---------------------------------------------------------------------------------------------------
+            fs.close();
+
+    }
+
+
 //metodo turno que es que se encarga de ir alternando los turnos y dentro de el se va verificando quien gana u si se llena el tablero
     bool turn(int players, Board b, player p){
         bool hi = true;
-
         while(hi){
                 for(int i =1; i<=players;i++){
                     int column=0;
                     do{
-                        cout<<"Player "<<p.nplayer[i]<<" is your turn\n Enter a column"<<endl;
+                        cout<<"Player #"<<i<<" with letter "<<p.nplayer[i]<<" is your turn\n Enter a column"<<endl;
                         cin>>column;
                     }while(column>b.getTLenght());
 
-                    b.addElement(p.nplayer[i],column);
-                    system("clear");
-                    printTable(p,b);
-                    if(b.checkVertical()||b.checkLineal()||b.checkDiagonalTa()||b.checkDiagonalTb()||b.checkDiagonalTc()||b.checkDiagonalTd()){
+                        b.addElement(p.nplayer[i],column);
+                        system("clear");
+                        printTable(p,b);
+                        if(b.checkVertical()||b.checkLineal()||b.checkDiagonalTa()||b.checkDiagonalTb()||b.checkDiagonalTc()||b.checkDiagonalTd()){
                         cout<<"There a winner is the player "<<p.nplayer[i]<<endl;
+                        fSave(i,p,b,p.nplayer[i]);
                         return false;
-                    }
-                    if(b.full()){
+                        }
+                        if(b.full()){
                         cout<<"Board is full, There not a winner"<<endl;
                         return false;
+                        }
                     }
-                }
-        }
+            }
         return true;
     }
 
+
 int main()
 {
+
     Board b;                    //instancia tablero
     player p;                   //instancia de jugador
     b.createLine(p.column);     //creo las lineas de nodos
     b.linkNode();               //los enlazo
-    printTable(p,b);             //pues imprimo un tbalero en blanco
-    turn(p.players,b,p);
-                                      //turno se encarga del trabajo
+    printTable(p,b);            //pues imprimo un tbalero en blanco
+    turn(p.players,b,p);        //turno se encarga del trabajo
     return 0;
 }
